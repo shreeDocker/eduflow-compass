@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrincipalRouteImport } from './routes/principal'
@@ -17,6 +18,11 @@ import { Route as BooksRouteImport } from './routes/books'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClassIdRouteImport } from './routes/class.$id'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProgressRoute = ProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/principal': typeof PrincipalRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/class/$id': typeof ClassIdRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/principal': typeof PrincipalRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/class/$id': typeof ClassIdRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/principal': typeof PrincipalRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/class/$id': typeof ClassIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/principal'
     | '/profile'
     | '/progress'
+    | '/sitemap.xml'
     | '/class/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/principal'
     | '/profile'
     | '/progress'
+    | '/sitemap.xml'
     | '/class/$id'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/principal'
     | '/profile'
     | '/progress'
+    | '/sitemap.xml'
     | '/class/$id'
   fileRoutesById: FileRoutesById
 }
@@ -118,11 +130,19 @@ export interface RootRouteChildren {
   PrincipalRoute: typeof PrincipalRoute
   ProfileRoute: typeof ProfileRoute
   ProgressRoute: typeof ProgressRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ClassIdRoute: typeof ClassIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/progress': {
       id: '/progress'
       path: '/progress'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrincipalRoute: PrincipalRoute,
   ProfileRoute: ProfileRoute,
   ProgressRoute: ProgressRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ClassIdRoute: ClassIdRoute,
 }
 export const routeTree = rootRouteImport
