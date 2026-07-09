@@ -9,38 +9,155 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrincipalRouteImport } from './routes/principal'
+import { Route as MetroRouteImport } from './routes/metro'
+import { Route as BooksRouteImport } from './routes/books'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClassIdRouteImport } from './routes/class.$id'
 
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrincipalRoute = PrincipalRouteImport.update({
+  id: '/principal',
+  path: '/principal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MetroRoute = MetroRouteImport.update({
+  id: '/metro',
+  path: '/metro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BooksRoute = BooksRouteImport.update({
+  id: '/books',
+  path: '/books',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClassIdRoute = ClassIdRouteImport.update({
+  id: '/class/$id',
+  path: '/class/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/books': typeof BooksRoute
+  '/metro': typeof MetroRoute
+  '/principal': typeof PrincipalRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
+  '/class/$id': typeof ClassIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/books': typeof BooksRoute
+  '/metro': typeof MetroRoute
+  '/principal': typeof PrincipalRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
+  '/class/$id': typeof ClassIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/books': typeof BooksRoute
+  '/metro': typeof MetroRoute
+  '/principal': typeof PrincipalRoute
+  '/profile': typeof ProfileRoute
+  '/progress': typeof ProgressRoute
+  '/class/$id': typeof ClassIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/books'
+    | '/metro'
+    | '/principal'
+    | '/profile'
+    | '/progress'
+    | '/class/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/books'
+    | '/metro'
+    | '/principal'
+    | '/profile'
+    | '/progress'
+    | '/class/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/books'
+    | '/metro'
+    | '/principal'
+    | '/profile'
+    | '/progress'
+    | '/class/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BooksRoute: typeof BooksRoute
+  MetroRoute: typeof MetroRoute
+  PrincipalRoute: typeof PrincipalRoute
+  ProfileRoute: typeof ProfileRoute
+  ProgressRoute: typeof ProgressRoute
+  ClassIdRoute: typeof ClassIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/principal': {
+      id: '/principal'
+      path: '/principal'
+      fullPath: '/principal'
+      preLoaderRoute: typeof PrincipalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/metro': {
+      id: '/metro'
+      path: '/metro'
+      fullPath: '/metro'
+      preLoaderRoute: typeof MetroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/books': {
+      id: '/books'
+      path: '/books'
+      fullPath: '/books'
+      preLoaderRoute: typeof BooksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/class/$id': {
+      id: '/class/$id'
+      path: '/class/$id'
+      fullPath: '/class/$id'
+      preLoaderRoute: typeof ClassIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BooksRoute: BooksRoute,
+  MetroRoute: MetroRoute,
+  PrincipalRoute: PrincipalRoute,
+  ProfileRoute: ProfileRoute,
+  ProgressRoute: ProgressRoute,
+  ClassIdRoute: ClassIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
