@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /class/
+Disallow: /books
+Disallow: /progress
+Disallow: /profile
