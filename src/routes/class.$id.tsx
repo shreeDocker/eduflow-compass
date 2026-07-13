@@ -1,22 +1,22 @@
-import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
-import { MobileShell } from "@/components/AppShell";
+import { createFileRoute, Navigate, notFound } from "@tanstack/react-router";
+import { useCallback, useMemo, useState } from "react";
+import { Check } from "lucide-react";
+import { AppShell } from "@/components/AppShell";
+import { TopicProgressCard } from "@/components/TopicProgressCard";
+import { CompletionPopper } from "@/components/CompletionPopper";
+import { ProgressSlider } from "@/components/ProgressSlider";
 import { SwipeToComplete } from "@/components/SwipeToComplete";
-import { StatusPill } from "@/components/StatusPill";
-import {
-  chapterProgress,
-  findChapter,
-  findClass,
-  statusMeta,
-  type Topic,
-} from "@/lib/mock-data";
-import { ArrowLeft, Mic, Check, Sparkles } from "lucide-react";
+import { findChapter, findClass } from "@/lib/mock-data";
+import { useRole } from "@/lib/role-context";
+import { useSyllabusProgress } from "@/lib/syllabus-progress-context";
+import { currentUserId } from "@/lib/syllabus-data";
+import { classToSyllabusPath } from "@/lib/syllabus-progress-keys";
+import { isClassSessionForTeacher, topicProgress } from "@/lib/syllabus-utils";
 
 export const Route = createFileRoute("/class/$id")({
-  head: ({ params }) => ({
+  head: () => ({
     meta: [
-      { title: `Class ${params.id} — ClassPulse` },
-      { name: "description", content: "Update today's class in under 20 seconds." },
+      { title: `Class — Swotify Plus` },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -27,227 +27,209 @@ export const Route = createFileRoute("/class/$id")({
   },
   component: StartClass,
   notFoundComponent: () => (
-    <MobileShell>
-      <p className="text-center">Class not found.</p>
-    </MobileShell>
+    <AppShell title="Not found" showBack backTo="/today">
+      <p className="text-center text-theme-muted">Class not found.</p>
+    </AppShell>
   ),
 });
 
 function StartClass() {
   const { classId } = Route.useLoaderData();
   const cls = findClass(classId)!;
-  const info = findChapter(cls.chapterId)!;
-  const router = useRouter();
+  const { isAdmin } = useRole();
+  const { grades, setTopicProgress } = useSyllabusProgress();
 
-  const [topics, setTopics] = useState<Topic[]>(
-    info.chapter.topics.length > 0
-      ? info.chapter.topics
-      : [
-          { id: "auto1", title: "Introduction", status: "planned" },
-          { id: "auto2", title: "Core concept", status: "planned" },
-          { id: "auto3", title: "Practice", status: "planned" },
-        ],
-  );
-  const [voiceOpen, setVoiceOpen] = useState(false);
-  const [celebrate, setCelebrate] = useState(false);
+  const syllabusPath = classToSyllabusPath(cls.grade, cls.section, cls.subject);
+  const canAccess = isAdmin || isClassSessionForTeacher(cls, grades, currentUserId);
 
-  const progress = Math.round(
-    (topics.filter((t) => t.status === "completed").length / topics.length) * 100,
-  );
+  const syllabusChapter = useMemo(() => {
+    if (!syllabusPath) return null;
+    const grade = grades.find((g) => g.id === syllabusPath.gradeId);
+    const subject = grade?.subjects.find((s) => s.id === syllabusPath.subjectId);
+    return subject?.chapters.find((c) => c.id === cls.chapterId) ?? null;
+  }, [grades, cls.chapterId, syllabusPath]);
 
-  function complete(topicId: string) {
-    setTopics((prev) => {
-      const next = prev.map((t) =>
-        t.id === topicId ? { ...t, status: "completed" as const } : t,
-      );
-      if (next.every((t) => t.status === "completed")) {
-        setCelebrate(true);
-        setTimeout(() => setCelebrate(false), 2200);
-      }
-      return next;
+  const info = findChapter(cls.chapterId);
+  const subjectName = syllabusChapter
+    ? grades
+        .find((g) => g.id === syllabusPath?.gradeId)
+        ?.subjects.find((s) => s.id === syllabusPath?.subjectId)?.name ?? cls.subject
+    : info?.subject.name ?? cls.subject;
+  const chapterTitle = syllabusChapter?.title ?? info?.chapter.title ?? "Chapter";
+
+  const topics = useMemo(() => {
+    if (syllabusChapter && syllabusChapter.topics.length > 0) {
+      return syllabusChapter.topics.map((t) => ({
+        id: t.id,
+        title: t.title,
+        progress: topicProgress(t),
+      }));
+    }
+
+    const base =
+      info?.chapter.topics.length
+        ? info.chapter.topics
+        : [
+            { id: "auto1", title: "Introduction" },
+            { id: "auto2", title: "Core concept" },
+            { id: "auto3", title: "Practice" },
+          ];
+
+    if (!syllabusPath) return base.map((t) => ({ ...t, progress: 0 }));
+
+    const grade = grades.find((g) => g.id === syllabusPath.gradeId);
+    const subject = grade?.subjects.find((s) => s.id === syllabusPath.subjectId);
+    const chapter = subject?.chapters.find((c) => c.id === cls.chapterId);
+
+    return base.map((t) => {
+      const syllabusTopic = chapter?.topics.find((st) => st.id === t.id);
+      return { ...t, progress: syllabusTopic ? topicProgress(syllabusTopic) : 0 };
     });
+  }, [grades, info?.chapter.topics, cls.chapterId, syllabusPath, syllabusChapter]);
+
+  const [celebrate, setCelebrate] = useState({
+    show: false,
+    message: "",
+    sub: "",
+    fullScreen: false,
+  });
+
+  const progress = topics.length
+    ? Math.round(topics.reduce((s, t) => s + t.progress, 0) / topics.length)
+    : 0;
+  const doneCount = topics.filter((t) => t.progress >= 100).length;
+  const chapterDone = progress >= 100;
+
+  const dismissCelebrate = useCallback(() => {
+    setCelebrate((c) => ({ ...c, show: false }));
+  }, []);
+
+  function updateTopic(topicId: string, value: number, title: string) {
+    if (!syllabusPath) return;
+    setTopicProgress(
+      {
+        gradeId: syllabusPath.gradeId,
+        subjectId: syllabusPath.subjectId,
+        chapterId: cls.chapterId,
+        topicId,
+      },
+      value,
+    );
+    if (value >= 100) {
+      const othersDone = topics.every((x) => (x.id === topicId ? true : x.progress >= 100));
+      setCelebrate({
+        show: true,
+        message: othersDone ? "Chapter complete!" : "Done",
+        sub: othersDone ? chapterTitle : title,
+        fullScreen: othersDone,
+      });
+    }
   }
 
-  function applyVoice() {
-    // "Today completed velocity and acceleration" — fake AI fill.
-    setTopics((prev) =>
-      prev.map((t, i) => (i < 2 ? { ...t, status: "completed" } : t)),
-    );
-    setVoiceOpen(false);
+  function updateChapterProgress(value: number) {
+    if (!syllabusPath) return;
+    const incomplete = topics.filter((t) => t.progress < 100);
+    if (incomplete.length === 0) return;
+
+    incomplete.forEach((t) => {
+      setTopicProgress(
+        {
+          gradeId: syllabusPath.gradeId,
+          subjectId: syllabusPath.subjectId,
+          chapterId: cls.chapterId,
+          topicId: t.id,
+        },
+        value,
+      );
+    });
+
+    if (value >= 100) {
+      setCelebrate({
+        show: true,
+        message: "Chapter complete!",
+        sub: chapterTitle,
+        fullScreen: true,
+      });
+    }
   }
+
+  function markChapterComplete() {
+    if (chapterDone) return;
+    updateChapterProgress(100);
+  }
+
+  if (!canAccess) return <Navigate to="/today" replace />;
 
   return (
-    <MobileShell>
-      {/* Header */}
-      <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
-        <button
-          onClick={() => router.history.back()}
-          aria-label="Back"
-          className="big-tap grid place-items-center rounded-xl"
-          style={{ backgroundColor: "var(--surface-2)" }}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-widest" style={{ color: "var(--muted-foreground)" }}>
-            {cls.time} · {info.subject.name}
-          </p>
-          <h1 className="truncate text-2xl font-black">
-            Grade {cls.grade}
-            {cls.section}
-          </h1>
-        </div>
-      </header>
-
-      {/* Chapter card */}
-      <section className="card-elevated mt-6 p-5 animate-rise-in">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-widest" style={{ color: "var(--muted-foreground)" }}>
-              Chapter
-            </p>
-            <h2 className="mt-1 truncate text-xl font-black">{info.chapter.title}</h2>
-          </div>
-          <StatusPill status={info.chapter.status} />
-        </div>
-
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-xs" style={{ color: "var(--muted-foreground)" }}>
-            <span>Progress</span>
-            <span className="font-semibold" style={{ color: "var(--foreground)" }}>
-              {progress}%
-            </span>
-          </div>
-          <div className="mt-2 h-3 overflow-hidden rounded-full" style={{ backgroundColor: "var(--muted)" }}>
-            <div
-              className="h-full rounded-full transition-[width] duration-700"
-              style={{ width: `${progress}%`, backgroundColor: "var(--primary)" }}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Voice */}
-      <section className="mt-6">
-        <button
-          onClick={() => setVoiceOpen(true)}
-          className="big-tap flex w-full items-center gap-4 rounded-2xl p-5 text-left"
-          style={{
-            background:
-              "linear-gradient(135deg, color-mix(in oklab, var(--primary) 22%, var(--surface)), var(--surface))",
-            border: "1px solid color-mix(in oklab, var(--primary) 30%, transparent)",
-          }}
-        >
-          <div
-            className="grid h-14 w-14 shrink-0 place-items-center rounded-full"
-            style={{ backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }}
-          >
-            <Mic className="h-6 w-6" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-base font-bold">Update by voice</p>
-            <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-              "Today I completed velocity and acceleration" — AI does the rest.
-            </p>
-          </div>
-        </button>
-      </section>
-
-      {/* Topics */}
-      <section className="mt-6">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--muted-foreground)" }}>
-            Today's topics
-          </p>
-          <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-            {topics.filter((t) => t.status === "completed").length} / {topics.length}
+    <AppShell
+      title={`Grade ${cls.grade}${cls.section} · ${subjectName}`}
+      showBack
+      backTo="/today"
+    >
+      <section className="min-card mb-4 p-4">
+        <p className="text-[11px] text-theme-muted">{cls.time}</p>
+        <h2 className="mt-1 text-base font-semibold text-theme">{chapterTitle}</h2>
+        <div className="mt-3 flex items-center justify-between text-xs text-theme-muted">
+          <span>
+            {doneCount} of {topics.length} topics
+          </span>
+          <span className="font-mono font-medium text-theme" data-metric>
+            {progress}%
           </span>
         </div>
-        <ul className="space-y-3">
-          {topics.map((t, i) => (
-            <li key={t.id} className="animate-rise-in" style={{ animationDelay: `${i * 40}ms` }}>
-              <SwipeToComplete
+
+        {!chapterDone ? (
+          <>
+            <ProgressSlider
+              value={progress}
+              onChange={updateChapterProgress}
+              accent={progress >= 50 ? "var(--min-orange)" : "var(--min-accent)"}
+              className="mt-3"
+              aria-label={`${chapterTitle} chapter completion`}
+            />
+            <div className="mt-3">
+              <SwipeToComplete done={chapterDone} onComplete={markChapterComplete} />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--min-track)]">
+              <div
+                className="h-full rounded-full transition-[width] duration-500"
+                style={{ width: "100%", background: "var(--min-green)" }}
+              />
+            </div>
+            <div className="mt-3 flex items-center gap-2.5 text-theme-success">
+              <Check className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+              <p className="text-[15px] font-medium">Chapter completed</p>
+            </div>
+          </>
+        )}
+      </section>
+
+      <section>
+        <h3 className="mb-2 text-theme-label">Topics</h3>
+        <ul className="space-y-2">
+          {topics.map((t) => (
+            <li key={t.id}>
+              <TopicProgressCard
                 label={t.title}
-                done={t.status === "completed"}
-                onComplete={() => complete(t.id)}
+                progress={t.progress}
+                variant="tracker"
+                onProgressChange={(v) => updateTopic(t.id, v, t.title)}
               />
             </li>
           ))}
         </ul>
       </section>
 
-      {/* AI suggestion */}
-      <section
-        className="mt-6 rounded-2xl p-4"
-        style={{
-          backgroundColor: "color-mix(in oklab, var(--status-revision) 12%, var(--surface))",
-          border: "1px solid color-mix(in oklab, var(--status-revision) 25%, transparent)",
-        }}
-      >
-        <div className="flex items-start gap-3">
-          <Sparkles className="mt-0.5 h-4 w-4" style={{ color: statusMeta.revision.token }} />
-          <p className="text-sm">
-            You usually spend <b>3 classes</b> on Motion. This time you're at <b>5</b>. Likely cause:
-            attendance dropped below 80% on Tuesday.
-          </p>
-        </div>
-      </section>
-
-      {/* Voice modal */}
-      {voiceOpen && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-6 backdrop-blur"
-          onClick={() => setVoiceOpen(false)}
-        >
-          <div
-            className="card-elevated w-full max-w-sm p-6 text-center animate-rise-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              className="mx-auto grid h-24 w-24 place-items-center rounded-full animate-station-pulse"
-              style={{ backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }}
-            >
-              <Mic className="h-10 w-10" />
-            </div>
-            <p className="mt-6 text-lg font-bold">Listening…</p>
-            <p className="mt-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
-              "Today I completed velocity and acceleration."
-            </p>
-            <button
-              onClick={applyVoice}
-              className="big-tap mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold"
-              style={{ backgroundColor: "var(--status-completed)", color: "var(--primary-foreground)" }}
-            >
-              <Check className="h-5 w-5" /> Confirm
-            </button>
-            <button
-              onClick={() => setVoiceOpen(false)}
-              className="mt-3 w-full text-sm"
-              style={{ color: "var(--muted-foreground)" }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Celebration */}
-      {celebrate && (
-        <div className="pointer-events-none fixed inset-0 z-40 grid place-items-center">
-          <div
-            className="rounded-2xl px-6 py-4 text-center shadow-xl animate-rise-in"
-            style={{
-              backgroundColor: "var(--status-completed)",
-              color: "var(--primary-foreground)",
-            }}
-          >
-            <p className="text-lg font-black">🎉 Chapter complete!</p>
-            <Link to="/" className="mt-1 inline-block text-xs underline">
-              Back to today
-            </Link>
-          </div>
-        </div>
-      )}
-    </MobileShell>
+      <CompletionPopper
+        show={celebrate.show}
+        message={celebrate.message}
+        submessage={celebrate.sub}
+        onDone={dismissCelebrate}
+        fullScreen={celebrate.fullScreen}
+      />
+    </AppShell>
   );
 }

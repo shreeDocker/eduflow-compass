@@ -1,87 +1,114 @@
-import { useRef, useState } from "react";
-import { Check, ChevronsRight } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { ArrowRight, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export function SwipeToComplete({
-  label,
-  done,
-  onComplete,
-}: {
-  label: string;
+type SwipeToCompleteProps = {
   done: boolean;
   onComplete: () => void;
-}) {
+  className?: string;
+};
+
+const KNOB = 40;
+const PAD = 4;
+const THRESHOLD = 0.82;
+
+export function SwipeToComplete({ done, onComplete, className }: SwipeToCompleteProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const startX = useRef(0);
+  const originX = useRef(0);
 
-  const THRESHOLD = 0.75;
+  const maxDrag = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return 0;
+    return Math.max(0, track.clientWidth - KNOB - PAD * 2);
+  }, []);
 
-  function onDown(clientX: number) {
+  function reset() {
+    setDragging(false);
+    setDragX(0);
+  }
+
+  function complete() {
+    setDragX(maxDrag());
+    setDragging(false);
+    onComplete();
+  }
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (done) return;
-    startX.current = clientX;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    startX.current = e.clientX;
+    originX.current = dragX;
     setDragging(true);
   }
-  function onMove(clientX: number) {
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!dragging || done) return;
-    const track = trackRef.current;
-    if (!track) return;
-    const max = track.clientWidth - 56; // knob width
-    const dx = Math.max(0, Math.min(max, clientX - startX.current));
-    setDragX(dx);
+    const max = maxDrag();
+    const dx = e.clientX - startX.current;
+    setDragX(Math.max(0, Math.min(max, originX.current + dx)));
   }
-  function onUp() {
+
+  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
     if (!dragging || done) return;
-    setDragging(false);
-    const track = trackRef.current;
-    if (track && dragX / (track.clientWidth - 56) >= THRESHOLD) {
-      setDragX(track.clientWidth - 56);
-      onComplete();
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    const max = maxDrag();
+    if (max > 0 && dragX / max >= THRESHOLD) {
+      complete();
     } else {
-      setDragX(0);
+      reset();
     }
   }
+
+  const max = maxDrag();
+  const progress = max > 0 ? dragX / max : 0;
 
   return (
     <div
       ref={trackRef}
-      className={`swipe-track relative flex h-16 items-center overflow-hidden rounded-2xl px-2 select-none ${
-        done ? "opacity-100" : ""
-      }`}
-      onMouseDown={(e) => onDown(e.clientX)}
-      onMouseMove={(e) => onMove(e.clientX)}
-      onMouseUp={onUp}
-      onMouseLeave={onUp}
-      onTouchStart={(e) => onDown(e.touches[0].clientX)}
-      onTouchMove={(e) => onMove(e.touches[0].clientX)}
-      onTouchEnd={onUp}
+      className={cn("swipe-complete", done && "swipe-complete--done", className)}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={reset}
+      role="slider"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={done ? 100 : Math.round(progress * 100)}
+      aria-label="Swipe to mark topic complete"
     >
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 rounded-2xl"
+        className="swipe-complete__fill"
         style={{
-          width: done ? "100%" : `${dragX + 56}px`,
-          backgroundColor: "color-mix(in oklab, var(--status-completed) 22%, transparent)",
-          transition: dragging ? "none" : "width 220ms ease-out",
+          width: done ? "100%" : `${dragX + KNOB + PAD}px`,
+          opacity: done ? 1 : 0.35 + progress * 0.45,
         }}
       />
+
+      <span
+        className="swipe-complete__hint"
+        style={{ opacity: done ? 0 : Math.max(0, 1 - progress * 1.8) }}
+      >
+        Mark complete
+      </span>
+
+      <span className="swipe-complete__end" aria-hidden>
+        <Check className="h-4 w-4" strokeWidth={2.5} />
+      </span>
+
       <div
-        className="relative z-10 grid h-12 w-12 shrink-0 place-items-center rounded-xl"
+        className={cn("swipe-complete__knob", dragging && "swipe-complete__knob--dragging")}
         style={{
-          transform: `translateX(${done ? "calc(100% * 0)" : `${dragX}px`})`,
-          transition: dragging ? "none" : "transform 220ms ease-out",
-          backgroundColor: done ? "var(--status-completed)" : "var(--primary)",
-          color: "var(--primary-foreground)",
+          transform: `translateX(${done ? max : dragX}px)${dragging ? " scale(1.04)" : ""}`,
         }}
       >
-        {done ? <Check className="h-6 w-6" /> : <ChevronsRight className="h-6 w-6 animate-swipe-hint" />}
-      </div>
-      <div className="relative z-10 ml-4 min-w-0 flex-1">
-        <p className="truncate text-base font-semibold" style={{ color: "var(--foreground)" }}>
-          {label}
-        </p>
-        <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-          {done ? "Completed" : "Swipe right to mark complete"}
-        </p>
+        {done ? (
+          <Check className="h-4 w-4" strokeWidth={2.5} />
+        ) : (
+          <ArrowRight className="h-4 w-4 swipe-complete__arrow" strokeWidth={2.5} />
+        )}
       </div>
     </div>
   );

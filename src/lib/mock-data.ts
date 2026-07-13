@@ -1,4 +1,5 @@
-// Mock data for ClassPulse. Replace with Lovable Cloud in a later pass.
+// Mock data for ClassPulse demo — aligned with syllabus-data.ts (Mrs. Meena / t-meena).
+// Today's flow: 9A Motion (Velocity 75%) → 9B Motion → 8C Force → 9A Heat.
 
 export type TopicStatus =
   | "not-started"
@@ -56,7 +57,7 @@ export const currentTeacher = {
   school: "Swotify Academy",
   classesToday: 4,
   homeworkPending: 2,
-  topicsRemaining: 3,
+  topicsRemaining: 10,
 };
 
 // ---------- today's classes ----------
@@ -97,6 +98,107 @@ export const todaysClasses: ClassSession[] = [
     grade: "9",
     section: "A",
     chapterId: "sci-heat",
+    status: "upcoming",
+  },
+];
+
+/** School-wide timetable slots for admin daily logs (demo). */
+export type SchoolDailySlot = {
+  id: string;
+  period: number;
+  startTime: string;
+  endTime: string;
+  teacherId: string;
+  grade: string;
+  section: string;
+  subject: string;
+  chapterId: string;
+  status: "done" | "current" | "upcoming";
+};
+
+export const schoolDailySchedule: SchoolDailySlot[] = [
+  {
+    id: "s1",
+    period: 1,
+    startTime: "09:00",
+    endTime: "09:45",
+    teacherId: "t-meena",
+    grade: "9",
+    section: "A",
+    subject: "Science",
+    chapterId: "sci-motion",
+    status: "current",
+  },
+  {
+    id: "s2",
+    period: 2,
+    startTime: "09:50",
+    endTime: "10:35",
+    teacherId: "t-ravi",
+    grade: "8",
+    section: "A",
+    subject: "Mathematics",
+    chapterId: "m3",
+    status: "done",
+  },
+  {
+    id: "s3",
+    period: 3,
+    startTime: "10:50",
+    endTime: "11:35",
+    teacherId: "t-meena",
+    grade: "9",
+    section: "B",
+    subject: "Science",
+    chapterId: "sci-motion",
+    status: "upcoming",
+  },
+  {
+    id: "s4",
+    period: 4,
+    startTime: "11:40",
+    endTime: "12:25",
+    teacherId: "t-priya",
+    grade: "9",
+    section: "A",
+    subject: "English",
+    chapterId: "e3",
+    status: "upcoming",
+  },
+  {
+    id: "s5",
+    period: 5,
+    startTime: "13:30",
+    endTime: "14:15",
+    teacherId: "t-meena",
+    grade: "8",
+    section: "C",
+    subject: "Science",
+    chapterId: "sci-force",
+    status: "upcoming",
+  },
+  {
+    id: "s6",
+    period: 6,
+    startTime: "14:20",
+    endTime: "15:05",
+    teacherId: "t-karthik",
+    grade: "8",
+    section: "B",
+    subject: "Science",
+    chapterId: "sci-matter",
+    status: "upcoming",
+  },
+  {
+    id: "s7",
+    period: 7,
+    startTime: "15:10",
+    endTime: "15:55",
+    teacherId: "t-karthik",
+    grade: "9",
+    section: "A",
+    subject: "Mathematics",
+    chapterId: "m2",
     status: "upcoming",
   },
 ];

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Swotify Plus">
+  <rect width="512" height="512" fill="#121212"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#g1)" stroke-width="22" stroke-linecap="round" stroke-dasharray="280 180" opacity="0.72" transform="rotate(-18 256 256)"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="url(#g1)" stroke-width="26" stroke-linecap="round" stroke-dasharray="190 110" opacity="0.95" transform="rotate(-42 256 256)"/>
+  <circle cx="256" cy="256" r="24" fill="#ffffff" opacity="0.95"/>
+  <circle cx="256" cy="256" r="24" fill="url(#g1)" opacity="0.35"/>
+  <defs>
+    <linearGradient id="g1" x1="96" y1="64" x2="416" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop stop-color="#38BDF8"/>
+    </linearGradient>
+  </defs>
+</svg>

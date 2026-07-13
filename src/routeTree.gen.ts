@@ -9,15 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrackRouteImport } from './routes/track'
+import { Route as TodayRouteImport } from './routes/today'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrincipalRouteImport } from './routes/principal'
 import { Route as MetroRouteImport } from './routes/metro'
+import { Route as LibraryRouteImport } from './routes/library'
+import { Route as ClassesRouteImport } from './routes/classes'
 import { Route as BooksRouteImport } from './routes/books'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BooksIndexRouteImport } from './routes/books.index'
 import { Route as ClassIdRouteImport } from './routes/class.$id'
+import { Route as AdminTeachersRouteImport } from './routes/admin.teachers'
+import { Route as AdminNotesRouteImport } from './routes/admin.notes'
+import { Route as AdminHeatmapRouteImport } from './routes/admin.heatmap'
+import { Route as AdminTeachersIndexRouteImport } from './routes/admin.teachers.index'
+import { Route as BooksGradeIdSubjectIdRouteImport } from './routes/books.$gradeId.$subjectId'
+import { Route as AdminTeachersTeacherIdRouteImport } from './routes/admin.teachers.$teacherId'
 
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TodayRoute = TodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -43,6 +64,16 @@ const MetroRoute = MetroRouteImport.update({
   path: '/metro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClassesRoute = ClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BooksRoute = BooksRouteImport.update({
   id: '/books',
   path: '/books',
@@ -53,89 +84,207 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BooksIndexRoute = BooksIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BooksRoute,
+} as any)
 const ClassIdRoute = ClassIdRouteImport.update({
   id: '/class/$id',
   path: '/class/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTeachersRoute = AdminTeachersRouteImport.update({
+  id: '/admin/teachers',
+  path: '/admin/teachers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminNotesRoute = AdminNotesRouteImport.update({
+  id: '/admin/notes',
+  path: '/admin/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminHeatmapRoute = AdminHeatmapRouteImport.update({
+  id: '/admin/heatmap',
+  path: '/admin/heatmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTeachersIndexRoute = AdminTeachersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminTeachersRoute,
+} as any)
+const BooksGradeIdSubjectIdRoute = BooksGradeIdSubjectIdRouteImport.update({
+  id: '/$gradeId/$subjectId',
+  path: '/$gradeId/$subjectId',
+  getParentRoute: () => BooksRoute,
+} as any)
+const AdminTeachersTeacherIdRoute = AdminTeachersTeacherIdRouteImport.update({
+  id: '/$teacherId',
+  path: '/$teacherId',
+  getParentRoute: () => AdminTeachersRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/books': typeof BooksRoute
+  '/books': typeof BooksRouteWithChildren
+  '/classes': typeof ClassesRoute
+  '/library': typeof LibraryRoute
   '/metro': typeof MetroRoute
   '/principal': typeof PrincipalRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/today': typeof TodayRoute
+  '/track': typeof TrackRoute
+  '/admin/heatmap': typeof AdminHeatmapRoute
+  '/admin/notes': typeof AdminNotesRoute
+  '/admin/teachers': typeof AdminTeachersRouteWithChildren
   '/class/$id': typeof ClassIdRoute
+  '/books/': typeof BooksIndexRoute
+  '/admin/teachers/$teacherId': typeof AdminTeachersTeacherIdRoute
+  '/books/$gradeId/$subjectId': typeof BooksGradeIdSubjectIdRoute
+  '/admin/teachers/': typeof AdminTeachersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/books': typeof BooksRoute
+  '/classes': typeof ClassesRoute
+  '/library': typeof LibraryRoute
   '/metro': typeof MetroRoute
   '/principal': typeof PrincipalRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/today': typeof TodayRoute
+  '/track': typeof TrackRoute
+  '/admin/heatmap': typeof AdminHeatmapRoute
+  '/admin/notes': typeof AdminNotesRoute
   '/class/$id': typeof ClassIdRoute
+  '/books': typeof BooksIndexRoute
+  '/admin/teachers/$teacherId': typeof AdminTeachersTeacherIdRoute
+  '/books/$gradeId/$subjectId': typeof BooksGradeIdSubjectIdRoute
+  '/admin/teachers': typeof AdminTeachersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/books': typeof BooksRoute
+  '/books': typeof BooksRouteWithChildren
+  '/classes': typeof ClassesRoute
+  '/library': typeof LibraryRoute
   '/metro': typeof MetroRoute
   '/principal': typeof PrincipalRoute
   '/profile': typeof ProfileRoute
   '/progress': typeof ProgressRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/today': typeof TodayRoute
+  '/track': typeof TrackRoute
+  '/admin/heatmap': typeof AdminHeatmapRoute
+  '/admin/notes': typeof AdminNotesRoute
+  '/admin/teachers': typeof AdminTeachersRouteWithChildren
   '/class/$id': typeof ClassIdRoute
+  '/books/': typeof BooksIndexRoute
+  '/admin/teachers/$teacherId': typeof AdminTeachersTeacherIdRoute
+  '/books/$gradeId/$subjectId': typeof BooksGradeIdSubjectIdRoute
+  '/admin/teachers/': typeof AdminTeachersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/books'
+    | '/classes'
+    | '/library'
     | '/metro'
     | '/principal'
     | '/profile'
     | '/progress'
     | '/sitemap.xml'
+    | '/today'
+    | '/track'
+    | '/admin/heatmap'
+    | '/admin/notes'
+    | '/admin/teachers'
     | '/class/$id'
+    | '/books/'
+    | '/admin/teachers/$teacherId'
+    | '/books/$gradeId/$subjectId'
+    | '/admin/teachers/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/books'
+    | '/classes'
+    | '/library'
     | '/metro'
     | '/principal'
     | '/profile'
     | '/progress'
     | '/sitemap.xml'
+    | '/today'
+    | '/track'
+    | '/admin/heatmap'
+    | '/admin/notes'
     | '/class/$id'
+    | '/books'
+    | '/admin/teachers/$teacherId'
+    | '/books/$gradeId/$subjectId'
+    | '/admin/teachers'
   id:
     | '__root__'
     | '/'
     | '/books'
+    | '/classes'
+    | '/library'
     | '/metro'
     | '/principal'
     | '/profile'
     | '/progress'
     | '/sitemap.xml'
+    | '/today'
+    | '/track'
+    | '/admin/heatmap'
+    | '/admin/notes'
+    | '/admin/teachers'
     | '/class/$id'
+    | '/books/'
+    | '/admin/teachers/$teacherId'
+    | '/books/$gradeId/$subjectId'
+    | '/admin/teachers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BooksRoute: typeof BooksRoute
+  BooksRoute: typeof BooksRouteWithChildren
+  ClassesRoute: typeof ClassesRoute
+  LibraryRoute: typeof LibraryRoute
   MetroRoute: typeof MetroRoute
   PrincipalRoute: typeof PrincipalRoute
   ProfileRoute: typeof ProfileRoute
   ProgressRoute: typeof ProgressRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TodayRoute: typeof TodayRoute
+  TrackRoute: typeof TrackRoute
+  AdminHeatmapRoute: typeof AdminHeatmapRoute
+  AdminNotesRoute: typeof AdminNotesRoute
+  AdminTeachersRoute: typeof AdminTeachersRouteWithChildren
   ClassIdRoute: typeof ClassIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/today': {
+      id: '/today'
+      path: '/today'
+      fullPath: '/today'
+      preLoaderRoute: typeof TodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -171,6 +320,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MetroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/classes': {
+      id: '/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof ClassesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/books': {
       id: '/books'
       path: '/books'
@@ -185,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/books/': {
+      id: '/books/'
+      path: '/'
+      fullPath: '/books/'
+      preLoaderRoute: typeof BooksIndexRouteImport
+      parentRoute: typeof BooksRoute
+    }
     '/class/$id': {
       id: '/class/$id'
       path: '/class/$id'
@@ -192,17 +362,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClassIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/teachers': {
+      id: '/admin/teachers'
+      path: '/admin/teachers'
+      fullPath: '/admin/teachers'
+      preLoaderRoute: typeof AdminTeachersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/notes': {
+      id: '/admin/notes'
+      path: '/admin/notes'
+      fullPath: '/admin/notes'
+      preLoaderRoute: typeof AdminNotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/heatmap': {
+      id: '/admin/heatmap'
+      path: '/admin/heatmap'
+      fullPath: '/admin/heatmap'
+      preLoaderRoute: typeof AdminHeatmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/teachers/': {
+      id: '/admin/teachers/'
+      path: '/'
+      fullPath: '/admin/teachers/'
+      preLoaderRoute: typeof AdminTeachersIndexRouteImport
+      parentRoute: typeof AdminTeachersRoute
+    }
+    '/books/$gradeId/$subjectId': {
+      id: '/books/$gradeId/$subjectId'
+      path: '/$gradeId/$subjectId'
+      fullPath: '/books/$gradeId/$subjectId'
+      preLoaderRoute: typeof BooksGradeIdSubjectIdRouteImport
+      parentRoute: typeof BooksRoute
+    }
+    '/admin/teachers/$teacherId': {
+      id: '/admin/teachers/$teacherId'
+      path: '/$teacherId'
+      fullPath: '/admin/teachers/$teacherId'
+      preLoaderRoute: typeof AdminTeachersTeacherIdRouteImport
+      parentRoute: typeof AdminTeachersRoute
+    }
   }
 }
 
+interface BooksRouteChildren {
+  BooksIndexRoute: typeof BooksIndexRoute
+  BooksGradeIdSubjectIdRoute: typeof BooksGradeIdSubjectIdRoute
+}
+
+const BooksRouteChildren: BooksRouteChildren = {
+  BooksIndexRoute: BooksIndexRoute,
+  BooksGradeIdSubjectIdRoute: BooksGradeIdSubjectIdRoute,
+}
+
+const BooksRouteWithChildren = BooksRoute._addFileChildren(BooksRouteChildren)
+
+interface AdminTeachersRouteChildren {
+  AdminTeachersTeacherIdRoute: typeof AdminTeachersTeacherIdRoute
+  AdminTeachersIndexRoute: typeof AdminTeachersIndexRoute
+}
+
+const AdminTeachersRouteChildren: AdminTeachersRouteChildren = {
+  AdminTeachersTeacherIdRoute: AdminTeachersTeacherIdRoute,
+  AdminTeachersIndexRoute: AdminTeachersIndexRoute,
+}
+
+const AdminTeachersRouteWithChildren = AdminTeachersRoute._addFileChildren(
+  AdminTeachersRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BooksRoute: BooksRoute,
+  BooksRoute: BooksRouteWithChildren,
+  ClassesRoute: ClassesRoute,
+  LibraryRoute: LibraryRoute,
   MetroRoute: MetroRoute,
   PrincipalRoute: PrincipalRoute,
   ProfileRoute: ProfileRoute,
   ProgressRoute: ProgressRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TodayRoute: TodayRoute,
+  TrackRoute: TrackRoute,
+  AdminHeatmapRoute: AdminHeatmapRoute,
+  AdminNotesRoute: AdminNotesRoute,
+  AdminTeachersRoute: AdminTeachersRouteWithChildren,
   ClassIdRoute: ClassIdRoute,
 }
 export const routeTree = rootRouteImport

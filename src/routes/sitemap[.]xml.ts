@@ -9,7 +9,7 @@ export const Route = createFileRoute("/sitemap.xml")({
       GET: () => {
         const entries = [
           { path: "/", priority: "1.0" },
-          { path: "/metro", priority: "0.8" },
+          { path: "/books", priority: "0.9" },
           { path: "/principal", priority: "0.8" },
         ];
         const urls = entries.map(

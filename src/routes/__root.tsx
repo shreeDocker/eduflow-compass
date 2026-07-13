@@ -7,14 +7,22 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { RoleProvider } from "../lib/role-context";
+import { NotesProvider } from "../lib/notes-context";
+import { BooksProvider } from "../lib/books-context";
+import { SubjectAssignmentsProvider } from "../lib/subject-assignments-context";
+import { SyllabusProgressProvider } from "../lib/syllabus-progress-context";
+import { SyllabusTimelineProvider } from "../lib/syllabus-timeline-context";
+import { PwaRegistration } from "../components/PwaRegistration";
+import { AppSplash } from "../components/AppSplash";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-8">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
@@ -42,7 +50,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-8">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
@@ -77,29 +85,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#0F172A" },
-      { title: "ClassPulse — Real-time syllabus tracking for schools" },
+      { name: "theme-color", content: "#181b20" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Swotify Plus" },
+      { name: "application-name", content: "Swotify Plus" },
+      { title: "Swotify Plus — Student success operating system" },
       {
         name: "description",
         content:
-          "Update today's class in under 20 seconds. Mobile-first syllabus coverage for teachers, live dashboards for principals.",
+          "Turns student data into intelligent actions and measurable outcomes. Real-time syllabus tracking for teachers and principals.",
       },
-      { property: "og:title", content: "ClassPulse — Real-time syllabus tracking" },
+      { property: "og:title", content: "Swotify Plus — Student success OS" },
       {
         property: "og:description",
-        content: "Mobile-first for teachers. Live analytics for principals. No Excel, no daily reports.",
+        content: "Premium syllabus intelligence for teachers. Live dashboards for principals.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/icon.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap",
       },
     ],
   }),
@@ -115,7 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="overflow-x-hidden antialiased">
         {children}
         <Scripts />
       </body>
@@ -125,11 +140,30 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [clientReady, setClientReady] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
+
+  useEffect(() => {
+    setClientReady(true);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      {clientReady && !splashDone && <AppSplash onComplete={() => setSplashDone(true)} />}
+      <PwaRegistration />
+      <RoleProvider>
+        <NotesProvider>
+          <BooksProvider>
+          <SubjectAssignmentsProvider>
+          <SyllabusProgressProvider>
+            <SyllabusTimelineProvider>
+              <Outlet />
+            </SyllabusTimelineProvider>
+          </SyllabusProgressProvider>
+          </SubjectAssignmentsProvider>
+          </BooksProvider>
+        </NotesProvider>
+      </RoleProvider>
     </QueryClientProvider>
   );
 }

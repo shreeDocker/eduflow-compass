@@ -1,11 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, BookOpen, BarChart3, User } from "lucide-react";
+import { Home, User } from "lucide-react";
 
 const items = [
-  { to: "/", label: "Today", icon: Home },
-  { to: "/books", label: "Books", icon: BookOpen },
-  { to: "/progress", label: "Progress", icon: BarChart3 },
-  { to: "/profile", label: "Profile", icon: User },
+  { to: "/", label: "Home", icon: Home, exact: true },
+  { to: "/profile", label: "Profile", icon: User, exact: false },
 ] as const;
 
 export function BottomNav() {
@@ -14,11 +12,11 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
-      <ul className="mx-auto grid max-w-md grid-cols-4">
-        {items.map(({ to, label, icon: Icon }) => {
-          const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+      <ul className="mx-auto grid max-w-md grid-cols-2">
+        {items.map(({ to, label, icon: Icon, exact }) => {
+          const active = exact ? pathname === to : pathname.startsWith(to);
           return (
             <li key={to}>
               <Link
