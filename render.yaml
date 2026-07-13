@@ -3,10 +3,10 @@ services:
     name: swotify-plus
     runtime: node
     plan: free
+
     buildCommand: npm ci && npm run build
     startCommand: npm start
+
     envVars:
       - key: NODE_ENV
         value: production
-      - key: NODE_VERSION
-        value: 22.16.0
